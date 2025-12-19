@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Simulador de Consumo Energético{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-brand">
+                <i class="fas fa-bolt"></i>
+                <span>Simulador Energético</span>
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="/" class="nav-link">Dashboard</a></li>
+                <li><a href="#aparatos" class="nav-link">Aparatos</a></li>
+                <li><a href="#consumo" class="nav-link">Análisis</a></li>
+                <li><a href="#simulacion" class="nav-link">Simulaciones</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Notificación -->
+    <div id="notification" class="notification"></div>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Simulador de Consumo Energético - Proyecto Funciones y Matrices</p>
+            <p>Osvaldo Uhart | Cristóbal Aros | Eduardo Arriagada</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

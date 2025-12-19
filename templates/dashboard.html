@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <h1>Simulador de Consumo Energetico Eficiente</h1>
+        <p class="subtitle">Analiza, simula y optimiza el consumo electrico de tu hogar</p>
+    </div>
+
+    <div class="tabs-navigation">
+        <button class="tab-btn active" data-tab="aparatos">Aparatos</button>
+        <button class="tab-btn" data-tab="consumo">Analisis</button>
+        <button class="tab-btn" data-tab="simulacion">Simulacion</button>
+        <button class="tab-btn" data-tab="recomendaciones">Recomendaciones</button>
+    </div>
+
+    <!-- TAB 1: APARATOS -->
+    <div id="aparatos" class="tab-content active">
+        <div class="card">
+            <h2><i class="fas fa-plug"></i> Gestion de Aparatos</h2>
+            
+            <div class="form-group">
+                <input type="text" id="nombre-aparato" placeholder="Nombre del aparato" class="input-field">
+                <input type="number" id="potencia-aparato" placeholder="Potencia (watts)" class="input-field" min="1">
+                <input type="number" id="horas-aparato" placeholder="Horas diarias" class="input-field" min="0.1" step="0.1">
+                <button onclick="agregarAparato()" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Agregar
+                </button>
+            </div>
+
+            <button onclick="cargarEjemplo()" class="btn btn-secondary" style="margin-bottom: 1rem;">
+                <i class="fas fa-download"></i> Cargar Ejemplo
+            </button>
+
+            <div id="lista-aparatos" class="aparatos-list">
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>No hay aparatos agregados aun</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: ANALISIS DE CONSUMO -->
+    <div id="consumo" class="tab-content">
+        <div class="card">
+            <h2><i class="fas fa-chart-bar"></i> Analisis de Consumo</h2>
+            
+            <button onclick="calcularConsumo()" class="btn btn-primary btn-large">
+                <i class="fas fa-calculator"></i> Calcular Consumo
+            </button>
+
+            <div id="consumo-results" class="results-container" style="display: none;">
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Consumo Diario</div>
+                        <div class="kpi-value" id="kpi-diario">0.00</div>
+                        <div class="kpi-unit">kWh</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Consumo Mensual</div>
+                        <div class="kpi-value" id="kpi-mensual">0.00</div>
+                        <div class="kpi-unit">kWh</div>
+                    </div>
+                    <div class="kpi-card highlight">
+                        <div class="kpi-label">Costo Mensual</div>
+                        <div class="kpi-value" id="kpi-costo">$0.00</div>
+                        <div class="kpi-unit">CLP</div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="tabla-consumo" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Aparato</th>
+                                <th>Potencia (W)</th>
+                                <th>Horas/dia</th>
+                                <th>kWh/dia</th>
+                                <th>kWh/mes</th>
+                                <th>Costo/mes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-consumo-body">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="grafico-container">
+                    <canvas id="grafico-consumo"></canvas>
+                </div>
+
+                <div class="top-consumidores">
+                    <h3><i class="fas fa-trophy"></i> Top 3 Consumidores</h3>
+                    <div id="top-list" class="top-list">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: SIMULACION -->
+    <div id="simulacion" class="tab-content">
+        <div class="card">
+            <h2><i class="fas fa-flask"></i> Simulacion de Reduccion</h2>
+            
+            <p class="info-text">
+                Simula el impacto de reducir el consumo en los 3 aparatos con mayor consumo energetico.
+            </p>
+
+            <div class="form-group">
+                <label for="porcentaje-reduccion">Porcentaje de Reduccion (%)</label>
+                <input type="range" id="porcentaje-reduccion" min="0" max="100" value="20" class="slider">
+                <div class="slider-value">
+                    <span id="valor-porcentaje">20</span>%
+                </div>
+            </div>
+
+            <button onclick="simularReduccion()" class="btn btn-primary btn-large">
+                <i class="fas fa-play"></i> Ejecutar Simulacion
+            </button>
+
+            <div id="simulacion-results" class="results-container" style="display: none;">
+                <div class="simulacion-comparison">
+                    <div class="sim-box original">
+                        <div class="sim-title">Consumo Actual</div>
+                        <div class="sim-value" id="sim-original">0.00</div>
+                        <div class="sim-unit">kWh/mes</div>
+                    </div>
+                    <div class="sim-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                    <div class="sim-box simulado">
+                        <div class="sim-title">Consumo Simulado</div>
+                        <div class="sim-value" id="sim-nuevo">0.00</div>
+                        <div class="sim-unit">kWh/mes</div>
+                    </div>
+                </div>
+
+                <div class="sim-beneficios">
+                    <div class="beneficio-card">
+                        <i class="fas fa-leaf"></i>
+                        <div class="beneficio-label">Ahorro Energetico</div>
+                        <div class="beneficio-valor" id="sim-ahorro-kwh">0.00</div>
+                        <div class="beneficio-unit">kWh/mes</div>
+                    </div>
+                    <div class="beneficio-card">
+                        <i class="fas fa-coins"></i>
+                        <div class="beneficio-label">Ahorro Economico</div>
+                        <div class="beneficio-valor" id="sim-ahorro-dinero">$0.00</div>
+                        <div class="beneficio-unit">CLP/mes</div>
+                    </div>
+                    <div class="beneficio-card">
+                        <i class="fas fa-percent"></i>
+                        <div class="beneficio-label">Reduccion</div>
+                        <div class="beneficio-valor" id="sim-ahorro-porc">0.00</div>
+                        <div class="beneficio-unit">%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: RECOMENDACIONES -->
+    <div id="recomendaciones" class="tab-content">
+        <div class="card">
+            <h2><i class="fas fa-lightbulb"></i> Recomendaciones de Ahorro</h2>
+            
+            <button onclick="cargarRecomendaciones()" class="btn btn-primary btn-large">
+                <i class="fas fa-brain"></i> Generar Recomendaciones
+            </button>
+
+            <div id="recomendaciones-container" class="recommendations-list" style="display: none;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="notification" class="notification"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    console.log("Dashboard cargado correctamente");
+</script>
+{% endblock %}
