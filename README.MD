@@ -2,11 +2,6 @@
 
 Proyecto desarrollado para la asignatura de Funciones y Matrices.
 
-## Integrantes
-- Osvaldo Uhart
-- Cristóbal Aros
-- Eduardo Arriagada
-
 ## Descripción
 Aplicación web que permite simular y analizar el consumo energético de aparatos electrodomésticos en el hogar.
 
