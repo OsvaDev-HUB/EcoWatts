@@ -2,7 +2,7 @@
 
 **EcoWatts** es una plataforma web moderna diseñada para ayudar a los usuarios a visualizar, analizar y optimizar el consumo eléctrico de su hogar. A través de simulaciones precisas y análisis de datos, permite tomar decisiones informadas para reducir tanto el impacto ambiental como el costo de la factura eléctrica.
 
-## 🌟 Características Principales
+## Características Principales
 
 - **Gestión de Aparatos:** CRUD completo para registrar dispositivos eléctricos con potencia (W) y horas de uso.
 - **Análisis en Tiempo Real:** Cálculos automáticos de consumo diario/mensual (kWh) y costos proyectados.
@@ -11,7 +11,7 @@
 - **Simulación de Ahorro:** Herramienta predictiva para visualizar el impacto de reducir el uso en porcentajes específicos.
 - **Interfaz Premium:** Diseño moderno con tipografía *Space Grotesk*, efectos de *glassmorphism* y animaciones dinámicas.
 
-## 🛠️ Stack Tecnológico
+## Stack Tecnológico
 
 - **Backend:** Python + Flask
 - **Base de Datos:** PostgreSQL + Flask-SQLAlchemy
@@ -20,7 +20,7 @@
 - **Gráficos:** Chart.js
 - **Entorno:** python-dotenv para gestión de variables de entorno
 
-## 🚀 Instalación y Configuración
+## Instalación y Configuración
 
 ### 1. Requisitos Previos
 - Python 3.10 o superior
@@ -51,8 +51,5 @@ py app.py
 ```
 Accede a `http://127.0.0.1:5000` en tu navegador.
 
-## 📊 Configuración de Tarifas
+## Configuración de Tarifas
 El sistema utiliza actualmente un valor promedio de **$262 CLP por kWh** (Chile, 2024), configurable dentro de la lógica del servidor.
-
----
-Desarrollado con ❤️ por **OsvaDev-HUB** para la asignatura de Funciones y Matrices.
