@@ -2,40 +2,43 @@
 
 {% block content %}
 <div class="container">
-    <div class="header">
-        <h1>Simulador de Consumo Energetico Eficiente</h1>
-        <p class="subtitle">Analiza, simula y optimiza el consumo electrico de tu hogar</p>
-    </div>
+    <header class="header">
+        <h1>Simulador Energético</h1>
+        <p class="subtitle">Analiza y optimiza el consumo eléctrico de tu hogar con precisión profesional.</p>
+    </header>
 
     <div class="tabs-navigation">
         <button class="tab-btn active" data-tab="aparatos">Aparatos</button>
-        <button class="tab-btn" data-tab="consumo">Analisis</button>
-        <button class="tab-btn" data-tab="simulacion">Simulacion</button>
-        <button class="tab-btn" data-tab="recomendaciones">Recomendaciones</button>
+        <button class="tab-btn" data-tab="consumo">Análisis</button>
+        <button class="tab-btn" data-tab="simulacion">Simulación</button>
+        <button class="tab-btn" data-tab="recomendaciones">Consejos</button>
     </div>
 
     <!-- TAB 1: APARATOS -->
     <div id="aparatos" class="tab-content active">
         <div class="card">
-            <h2><i class="fas fa-plug"></i> Gestion de Aparatos</h2>
+            <h2><i class="fas fa-plug"></i> Gestión de Dispositivos</h2>
             
             <div class="form-group">
-                <input type="text" id="nombre-aparato" placeholder="Nombre del aparato" class="input-field">
-                <input type="number" id="potencia-aparato" placeholder="Potencia (watts)" class="input-field" min="1">
-                <input type="number" id="horas-aparato" placeholder="Horas diarias" class="input-field" min="0.1" step="0.1">
+                <div class="input-wrapper">
+                    <input type="text" id="nombre-aparato" placeholder="Nombre (Ej: Refrigerador)" class="input-field">
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="potencia-aparato" placeholder="Potencia (Watts)" class="input-field" min="1">
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="horas-aparato" placeholder="Uso Diario (Horas)" class="input-field" min="0.1" step="0.1">
+                </div>
                 <button onclick="agregarAparato()" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Agregar
+                    <i class="fas fa-plus"></i> Añadir
                 </button>
             </div>
 
-            <button onclick="cargarEjemplo()" class="btn btn-secondary" style="margin-bottom: 1rem;">
-                <i class="fas fa-download"></i> Cargar Ejemplo
-            </button>
-
             <div id="lista-aparatos" class="aparatos-list">
+                <!-- Se llena con JS -->
                 <div class="empty-state">
-                    <i class="fas fa-inbox"></i>
-                    <p>No hay aparatos agregados aun</p>
+                    <i class="fas fa-microchip"></i>
+                    <p>No has añadido ningún aparato todavía.</p>
                 </div>
             </div>
         </div>
@@ -44,11 +47,13 @@
     <!-- TAB 2: ANALISIS DE CONSUMO -->
     <div id="consumo" class="tab-content">
         <div class="card">
-            <h2><i class="fas fa-chart-bar"></i> Analisis de Consumo</h2>
+            <h2><i class="fas fa-chart-pie"></i> Análisis de Consumo</h2>
             
-            <button onclick="calcularConsumo()" class="btn btn-primary btn-large">
-                <i class="fas fa-calculator"></i> Calcular Consumo
-            </button>
+            <div class="action-bar" style="text-align: center; margin-bottom: 2rem;">
+                <button onclick="calcularConsumo()" class="btn btn-primary btn-large">
+                    <i class="fas fa-sync-alt"></i> Procesar Datos y Generar Análisis
+                </button>
+            </div>
 
             <div id="consumo-results" class="results-container" style="display: none;">
                 <div class="kpi-grid">
@@ -63,7 +68,7 @@
                         <div class="kpi-unit">kWh</div>
                     </div>
                     <div class="kpi-card highlight">
-                        <div class="kpi-label">Costo Mensual</div>
+                        <div class="kpi-label">Costo Mensual Est.</div>
                         <div class="kpi-value" id="kpi-costo">$0.00</div>
                         <div class="kpi-unit">CLP</div>
                     </div>
@@ -73,12 +78,12 @@
                     <table id="tabla-consumo" class="data-table">
                         <thead>
                             <tr>
-                                <th>Aparato</th>
-                                <th>Potencia (W)</th>
-                                <th>Horas/dia</th>
-                                <th>kWh/dia</th>
-                                <th>kWh/mes</th>
-                                <th>Costo/mes</th>
+                                <th>Dispositivo</th>
+                                <th>Potencia</th>
+                                <th>Uso/Día</th>
+                                <th>kWh/Día</th>
+                                <th>kWh/Mes</th>
+                                <th>Costo/Mes</th>
                             </tr>
                         </thead>
                         <tbody id="tabla-consumo-body">
@@ -91,7 +96,7 @@
                 </div>
 
                 <div class="top-consumidores">
-                    <h3><i class="fas fa-trophy"></i> Top 3 Consumidores</h3>
+                    <h3><i class="fas fa-fire"></i> Dispositivos de Alto Consumo</h3>
                     <div id="top-list" class="top-list">
                     </div>
                 </div>
@@ -102,58 +107,59 @@
     <!-- TAB 3: SIMULACION -->
     <div id="simulacion" class="tab-content">
         <div class="card">
-            <h2><i class="fas fa-flask"></i> Simulacion de Reduccion</h2>
+            <h2><i class="fas fa-vial"></i> Laboratorio de Simulación</h2>
             
-            <p class="info-text">
-                Simula el impacto de reducir el consumo en los 3 aparatos con mayor consumo energetico.
-            </p>
+            <div class="simulation-controls" style="max-width: 600px; margin: 0 auto 3rem;">
+                <p class="info-text" style="text-align: center; margin-bottom: 1.5rem; color: var(--text-muted);">
+                    Ajusta el porcentaje de ahorro para ver el impacto económico potencial en los dispositivos de mayor consumo.
+                </p>
 
-            <div class="form-group">
-                <label for="porcentaje-reduccion">Porcentaje de Reduccion (%)</label>
-                <input type="range" id="porcentaje-reduccion" min="0" max="100" value="20" class="slider">
-                <div class="slider-value">
-                    <span id="valor-porcentaje">20</span>%
+                <div class="form-group" style="grid-template-columns: 1fr;">
+                    <input type="range" id="porcentaje-reduccion" min="0" max="100" value="20" class="slider" style="width: 100%; margin: 1rem 0;">
+                    <div class="slider-value" style="text-align: center; font-size: 1.5rem; font-weight: 700; color: var(--primary);">
+                        Reducción: <span id="valor-porcentaje">20</span>%
+                    </div>
                 </div>
-            </div>
 
-            <button onclick="simularReduccion()" class="btn btn-primary btn-large">
-                <i class="fas fa-play"></i> Ejecutar Simulacion
-            </button>
+                <button onclick="simularReduccion()" class="btn btn-primary btn-large">
+                    <i class="fas fa-play"></i> Iniciar Simulación
+                </button>
+            </div>
 
             <div id="simulacion-results" class="results-container" style="display: none;">
                 <div class="simulacion-comparison">
                     <div class="sim-box original">
-                        <div class="sim-title">Consumo Actual</div>
+                        <div class="sim-title">Gasto Actual</div>
                         <div class="sim-value" id="sim-original">0.00</div>
-                        <div class="sim-unit">kWh/mes</div>
+                        <div class="sim-unit">kWh / Mes</div>
                     </div>
                     <div class="sim-arrow">
-                        <i class="fas fa-arrow-right"></i>
+                        <i class="fas fa-chevron-right"></i>
                     </div>
                     <div class="sim-box simulado">
-                        <div class="sim-title">Consumo Simulado</div>
+                        <div class="sim-title">Nuevo Gasto</div>
                         <div class="sim-value" id="sim-nuevo">0.00</div>
-                        <div class="sim-unit">kWh/mes</div>
+                        <div class="sim-unit">kWh / Mes</div>
                     </div>
                 </div>
 
                 <div class="sim-beneficios">
                     <div class="beneficio-card">
                         <i class="fas fa-leaf"></i>
-                        <div class="beneficio-label">Ahorro Energetico</div>
+                        <div class="beneficio-label">Energía Ahorrada</div>
                         <div class="beneficio-valor" id="sim-ahorro-kwh">0.00</div>
-                        <div class="beneficio-unit">kWh/mes</div>
+                        <div class="beneficio-unit">kWh / Mes</div>
                     </div>
                     <div class="beneficio-card">
-                        <i class="fas fa-coins"></i>
-                        <div class="beneficio-label">Ahorro Economico</div>
-                        <div class="beneficio-valor" id="sim-ahorro-dinero">$0.00</div>
-                        <div class="beneficio-unit">CLP/mes</div>
+                        <i class="fas fa-wallet"></i>
+                        <div class="beneficio-label">Ahorro Económico</div>
+                        <div class="beneficio-valor" id="sim-ahorro-dinero">$0</div>
+                        <div class="beneficio-unit">CLP / Mes</div>
                     </div>
-                    <div class="beneficio-card">
-                        <i class="fas fa-percent"></i>
-                        <div class="beneficio-label">Reduccion</div>
-                        <div class="beneficio-valor" id="sim-ahorro-porc">0.00</div>
+                    <div class="beneficio-card" style="border-color: var(--accent);">
+                        <i class="fas fa-chart-line" style="color: var(--accent);"></i>
+                        <div class="beneficio-label">Eficiencia Lograda</div>
+                        <div class="beneficio-valor" id="sim-ahorro-porc" style="color: var(--accent);">0.00</div>
                         <div class="beneficio-unit">%</div>
                     </div>
                 </div>
@@ -164,24 +170,30 @@
     <!-- TAB 4: RECOMENDACIONES -->
     <div id="recomendaciones" class="tab-content">
         <div class="card">
-            <h2><i class="fas fa-lightbulb"></i> Recomendaciones de Ahorro</h2>
+            <h2><i class="fas fa-lightbulb"></i> Recomendaciones Personalizadas</h2>
             
-            <button onclick="cargarRecomendaciones()" class="btn btn-primary btn-large">
-                <i class="fas fa-brain"></i> Generar Recomendaciones
-            </button>
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <button onclick="cargarRecomendaciones()" class="btn btn-primary btn-large">
+                    <i class="fas fa-bolt"></i> Obtener Sugerencias de Optimización
+                </button>
+            </div>
 
             <div id="recomendaciones-container" class="recommendations-list" style="display: none;">
             </div>
         </div>
     </div>
 </div>
-
-<div id="notification" class="notification"></div>
-
 {% endblock %}
 
 {% block scripts %}
 <script>
-    console.log("Dashboard cargado correctamente");
+    // Sincronizar el valor del slider
+    const slider = document.getElementById('porcentaje-reduccion');
+    const valor = document.getElementById('valor-porcentaje');
+    if (slider && valor) {
+        slider.oninput = function() {
+            valor.innerHTML = this.value;
+        }
+    }
 </script>
-{% endblock %}
+{% endblock %}
