@@ -29,8 +29,8 @@
 
 ### 2. Clonar el Proyecto
 ```bash
-git clone https://github.com/OsvaDev-HUB/Simulador-de-consumo-energetico-eficiente.git
-cd Simulador-de-consumo-energetico-eficiente
+git clone https://github.com/OsvaDev-HUB/EcoWatts.git
+cd EcoWatts
 ```
 
 ### 3. Configuración de Variables de Entorno
