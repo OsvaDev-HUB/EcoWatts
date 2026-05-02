@@ -12,6 +12,11 @@
     <link
         href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
         rel="stylesheet">
+    
+    <!-- Token CSRF para peticiones AJAX -->
+    {% if csrf_token %}
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    {% endif %}
 
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -34,15 +39,15 @@
             </div>
             <ul class="navbar-menu">
                 {% if current_user.is_authenticated %}
-                <li><a href="{{ url_for('inicio') }}"
+                <li><a href="{{ url_for('pages.inicio') }}"
                         class="nav-link {% if request.path == '/' %}active{% endif %}">Inicio</a></li>
-                <li><a href="{{ url_for('aparatos_page') }}"
+                <li><a href="{{ url_for('pages.aparatos_page') }}"
                         class="nav-link {% if request.path == '/aparatos' %}active{% endif %}">Aparatos</a></li>
-                <li><a href="{{ url_for('analisis_page') }}"
+                <li><a href="{{ url_for('pages.analisis_page') }}"
                         class="nav-link {% if request.path == '/analisis' %}active{% endif %}">Análisis</a></li>
-                <li><a href="{{ url_for('simulacion_page') }}"
+                <li><a href="{{ url_for('pages.simulacion_page') }}"
                         class="nav-link {% if request.path == '/simulacion' %}active{% endif %}">Simulación</a></li>
-                <li><a href="{{ url_for('recomendaciones_page') }}"
+                <li><a href="{{ url_for('pages.recomendaciones_page') }}"
                         class="nav-link {% if request.path == '/recomendaciones' %}active{% endif %}">Consejos</a></li>
                 {% endif %}
             </ul>
@@ -51,11 +56,11 @@
                 <span style="margin-right: 1.5rem; font-weight: 600; color: var(--text-main); font-size: 0.9rem;">
                     <i class="fas fa-user-circle"></i> {{ current_user.username }}
                 </span>
-                <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm">
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary btn-sm">
                     <i class="fas fa-sign-out-alt"></i> Salir
                 </a>
                 {% else %}
-                <a href="{{ url_for('login') }}" class="btn btn-primary btn-sm">
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm">
                     <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
                 </a>
                 {% endif %}
@@ -103,9 +108,11 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script src="{{ url_for('static', filename='main.js') }}"></script>
-    {% block scripts %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+    <script src="{{ url_for('static', filename='js/config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
-
 </html>

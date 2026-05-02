@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Crear Cuenta - EcoWatts{% endblock %}
 
@@ -21,7 +21,8 @@
           {% endif %}
         {% endwith %}
 
-        <form action="{{ url_for('registro') }}" method="POST">
+        <form action="{{ url_for('auth.registro') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="form-group">
                 <label>Nombre de Usuario</label>
                 <div class="input-group">
@@ -45,7 +46,7 @@
         </form>
 
         <div class="auth-footer">
-            ¿Ya eres usuario? <a href="{{ url_for('login') }}">Inicia sesión</a>
+            ¿Ya eres usuario? <a href="{{ url_for('auth.login') }}">Inicia sesión</a>
         </div>
     </div>
 </div>
