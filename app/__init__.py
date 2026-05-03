@@ -13,7 +13,9 @@ def create_app(config_class=Config):
     csrf.init_app(app)
 
     # Configurar User loader para flask_login
+    # Importar modelos para que SQLAlchemy los reconozca
     from app.models.user import User
+    from app.models.aparato import Aparato
     @login_manager.user_loader
     def load_user(user_id):
         return db.session.get(User, int(user_id))
