@@ -1,14 +1,16 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required, current_user
-from app.extensions import db
+from app.extensions import db, limiter
 from app.models.aparato import Aparato
 from app.services.consumo import obtener_datos_consumo, obtener_top_consumidores_db
 from app.config import Config
+from markupsafe import escape
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
 @bp.route('/aparatos', methods=['GET'])
 @login_required
+@limiter.limit("60 per minute")
 def obtener_aparatos():
     aparatos = Aparato.query.filter_by(user_id=current_user.id).all()
     return jsonify([{
@@ -20,12 +22,13 @@ def obtener_aparatos():
 
 @bp.route('/aparatos', methods=['POST'])
 @login_required
+@limiter.limit("20 per minute")
 def agregar_aparato():
     data = request.get_json()
     if not data:
         return jsonify({'mensaje': 'Datos inválidos'}), 400
         
-    nombre = data.get('nombre', '').strip()
+    nombre = escape(data.get('nombre', '').strip())
     try:
         potencia = float(data.get('potencia_w', 0))
         horas = float(data.get('horas_dia', 0))
@@ -49,12 +52,13 @@ def agregar_aparato():
         db.session.add(nuevo)
         db.session.commit()
         return jsonify({'mensaje': 'Aparato agregado correctamente'})
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        return jsonify({'mensaje': f'Error: {str(e)}'}), 500
+        return jsonify({'mensaje': 'Ocurrió un error al procesar la solicitud'}), 500
 
 @bp.route('/aparatos/<int:id>', methods=['DELETE'])
 @login_required
+@limiter.limit("20 per minute")
 def eliminar_aparato(id):
     aparato = Aparato.query.filter_by(id=id, user_id=current_user.id).first()
     if aparato:
@@ -69,6 +73,7 @@ def eliminar_aparato(id):
 
 @bp.route('/aparatos/<int:id>', methods=['PUT'])
 @login_required
+@limiter.limit("20 per minute")
 def editar_aparato(id):
     data = request.get_json()
     if not data:
@@ -78,7 +83,7 @@ def editar_aparato(id):
     if not aparato:
         return jsonify({'mensaje': 'No encontrado'}), 404
         
-    nombre = data.get('nombre', '').strip()
+    nombre = escape(data.get('nombre', '').strip())
     try:
         potencia = float(data.get('potencia_w', 0))
         horas = float(data.get('horas_dia', 0))
@@ -104,12 +109,14 @@ def editar_aparato(id):
 
 @bp.route('/consumo', methods=['GET'])
 @login_required
+@limiter.limit("60 per minute")
 def calcular_consumo():
     datos = obtener_datos_consumo(current_user.id)
     return jsonify(datos)
 
 @bp.route('/top-consumidores')
 @login_required
+@limiter.limit("60 per minute")
 def top_consumidores():
     top = obtener_top_consumidores_db(current_user.id, 3)
     total_data = obtener_datos_consumo(current_user.id)
@@ -129,6 +136,7 @@ def top_consumidores():
 
 @bp.route('/simulacion', methods=['POST'])
 @login_required
+@limiter.limit("30 per minute")
 def simular_reduccion():
     data = request.get_json()
     if not data:
@@ -155,6 +163,7 @@ def simular_reduccion():
 
 @bp.route('/recomendaciones')
 @login_required
+@limiter.limit("30 per minute")
 def recomendaciones():
     top = obtener_top_consumidores_db(current_user.id, 3)
     sugerencias = []
@@ -182,7 +191,11 @@ def recomendaciones():
 
 @bp.route('/cargar-ejemplo', methods=['POST'])
 @login_required
+@limiter.limit("5 per minute")
 def cargar_ejemplo():
+    if not current_app.config.get('DEBUG', False):
+        return jsonify({'mensaje': 'Operación no permitida en producción'}), 403
+        
     ejemplos = [
         {'nombre': 'Refrigerador', 'potencia': 250, 'horas': 24},
         {'nombre': 'Televisor', 'potencia': 150, 'horas': 5},

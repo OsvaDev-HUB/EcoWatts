@@ -10,7 +10,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
 
   web:
     build: .
@@ -20,7 +20,8 @@ services:
       - "5000:5000"
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-usuario}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-Eco_Watts}
-      - SECRET_KEY=${SECRET_KEY:-dev_key_ecowatts}
+      - SECRET_KEY=${SECRET_KEY}
+      - FLASK_DEBUG=${FLASK_DEBUG:-False}
     depends_on:
       - db
 
