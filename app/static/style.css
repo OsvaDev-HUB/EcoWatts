@@ -1183,6 +1183,7 @@ body {
     flex-direction: column;
     color: var(--text-main);
 }
+
 /* --- INLINE NOTIFICATIONS (For Forms) --- */
 .notification-inline {
     width: 100%;
@@ -1209,4 +1210,3 @@ body {
     border-color: rgba(239, 68, 68, 0.2) !important;
     color: #b91c1c !important;
 }
-
