@@ -6,6 +6,21 @@
         <h2><i class="fas fa-plug"></i> Gestión de Dispositivos</h2>
         <p class="section-desc">Registra los aparatos eléctricos de tu hogar para calcular su consumo.</p>
         
+        <!-- Pestaña / Aviso de Etiqueta Energética -->
+        <div class="energy-label-notice" style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: flex; align-items: flex-start; gap: 1.5rem; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+            <div class="notice-image" style="flex-shrink: 0; width: 80px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.1);">
+                <img src="/static/img/Etiqueta-Eficiencia-Energética.jpg" alt="Referencia de Etiqueta Energética" style="width: 100%; height: auto; display: block; object-fit: cover;">
+            </div>
+            <div class="notice-content" style="flex-grow: 1;">
+                <h4 style="color: var(--primary); margin-top: 0; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
+                    <i class="fas fa-search-dollar"></i> Experiencia acorde a la realidad
+                </h4>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;">
+                    Para una simulación precisa, revisa la <strong>Etiqueta de Eficiencia Energética</strong> adherida a tus aparatos reales. Usa el valor de Consumo Mensual (kWh/mes) o Potencia (W) indicado allí para rellenar los datos.
+                </p>
+            </div>
+        </div>
+        
         <div class="form-group">
             <div class="input-wrapper">
                 <input type="text" id="nombre-aparato" placeholder="Nombre (Ej: Refrigerador)" class="input-field">

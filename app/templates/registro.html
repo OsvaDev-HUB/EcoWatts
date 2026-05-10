@@ -26,17 +26,32 @@
             <div class="form-group">
                 <label style="margin-bottom: 0px !important; line-height: 1.2;">Nombre de Usuario</label>
                 <div class="input-group">
-                    <input type="text" name="username" class="auth-input" placeholder="Elige un usuario" required>
-                    <i class="fas fa-user-plus"></i>
+                    <input type="text" name="username" class="auth-input" placeholder="Elige un usuario" required minlength="3" maxlength="80">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="margin-bottom: 0px !important; line-height: 1.2;">Correo Electrónico</label>
+                <div class="input-group">
+                    <input type="email" name="email" class="auth-input" placeholder="tu@correo.com" required maxlength="120">
+                    <i class="fas fa-envelope"></i>
                 </div>
             </div>
 
             <div class="form-group">
                 <label style="margin-bottom: 0px !important; line-height: 1.2;">Contraseña</label>
                 <div class="input-group">
-                    <input type="password" name="password" class="auth-input" placeholder="Mínimo 6 caracteres"
-                        required>
+                    <input type="password" name="password" class="auth-input" placeholder="Mín. 8 caracteres (Mayúscula, Número, Símbolo)" required minlength="8">
                     <i class="fas fa-key"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="margin-bottom: 0px !important; line-height: 1.2;">Confirmar Contraseña</label>
+                <div class="input-group">
+                    <input type="password" name="confirm_password" class="auth-input" placeholder="Repite tu contraseña" required minlength="8">
+                    <i class="fas fa-lock"></i>
                 </div>
             </div>
 
@@ -44,6 +59,16 @@
                 <span>Registrarme</span>
                 <i class="fas fa-check-circle"></i>
             </button>
+
+            <div style="text-align: center; margin: 1.5rem 0; position: relative;">
+                <hr style="border: none; border-top: 1px solid var(--border);">
+                <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card-bg); padding: 0 10px; color: var(--text-muted); font-size: 0.85rem;">o también</span>
+            </div>
+
+            <a href="{{ url_for('auth.google_login') }}" class="btn-auth-outline" style="margin-top: 0;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style="width: 18px; height: 18px;">
+                <span>Registrarse con Google</span>
+            </a>
         </form>
 
         <div class="auth-footer">

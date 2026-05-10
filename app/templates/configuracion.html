@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="header" style="padding: 2rem 0;">
+        <h1>Configuración de EcoWatts</h1>
+        <p class="subtitle">Ajusta tu experiencia y parámetros de cálculo a tu medida.</p>
+    </div>
+
+    <div class="kpi-grid">
+        <!-- Tarjeta de Modo Oscuro -->
+        <div class="card" style="margin-bottom: 0;">
+            <h2><i class="fas fa-paint-brush"></i> Apariencia</h2>
+            <p class="section-desc">Cambia la interfaz a modo oscuro para proteger tu vista o ahorrar energía en pantallas OLED.</p>
+            
+            <div class="form-group" style="grid-template-columns: 1fr;">
+                <button id="theme-toggle" class="btn btn-secondary btn-large" style="display: flex; justify-content: center; gap: 1rem;">
+                    <i class="fas fa-moon"></i> <span>Activar Modo Oscuro</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Tarifa Eléctrica -->
+        <div class="card" style="margin-bottom: 0;">
+            <h2><i class="fas fa-bolt"></i> Tarifa Eléctrica</h2>
+            <p class="section-desc">Ajusta el valor actual del kWh en tu ciudad para cálculos de ahorro precisos.</p>
+            
+            <form id="tarifa-form" class="form-group" style="grid-template-columns: 1fr; margin-bottom: 0;">
+                <div class="input-group" style="position: relative;">
+                    <input type="number" id="tarifa-input" class="input-field" placeholder="Ej: 236" min="1" step="0.1" required style="padding-left: 2.5rem;">
+                    <i class="fas fa-money-bill-wave" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--primary);"></i>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button type="submit" class="btn btn-primary btn-large" style="flex: 1;">
+                        <i class="fas fa-save"></i> Guardar Tarifa
+                    </button>
+                    <button type="button" id="btn-default-tarifa" class="btn btn-secondary btn-large" style="flex: 1;">
+                        <i class="fas fa-undo"></i> Valor por Defecto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Cargar tarifa actual
+        fetch('/api/config/tarifa')
+            .then(res => res.json())
+            .then(data => {
+                const tarifaInput = document.getElementById('tarifa-input');
+                if (tarifaInput && data.tarifa) {
+                    tarifaInput.value = data.tarifa;
+                }
+            })
+            .catch(console.error);
+
+        // Función para enviar tarifa al backend
+        const enviarTarifa = (valor) => {
+            fetch('/api/config/tarifa', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ tarifa_kwh: parseFloat(valor) })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.mensaje.includes('correctamente')) {
+                    mostrarNotificacion(data.mensaje, 'success');
+                    const tarifaInput = document.getElementById('tarifa-input');
+                    if(tarifaInput) tarifaInput.value = data.tarifa;
+                } else {
+                    mostrarNotificacion(data.mensaje, 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                mostrarNotificacion('Error de conexión', 'error');
+            });
+        };
+
+        // Guardar nueva tarifa
+        const tarifaForm = document.getElementById('tarifa-form');
+        if (tarifaForm) {
+            tarifaForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const nuevaTarifa = document.getElementById('tarifa-input').value;
+                enviarTarifa(nuevaTarifa);
+            });
+        }
+
+        // Botón por defecto
+        const btnDefault = document.getElementById('btn-default-tarifa');
+        if (btnDefault) {
+            btnDefault.addEventListener('click', () => {
+                enviarTarifa(236); // Valor por defecto
+            });
+        }
+    });
+</script>
+{% endblock %}

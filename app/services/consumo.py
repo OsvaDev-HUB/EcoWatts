@@ -1,25 +1,24 @@
-from app.models.aparato import Aparato
 from app.config import Config
 
 def calcular_consumo_aparato(potencia_w, horas_dia):
     return (potencia_w * horas_dia) / 1000
 
-def obtener_top_consumidores_db(user_id, num_top=3):
-    aparatos = Aparato.query.filter_by(user_id=user_id).all()
+def obtener_top_consumidores_db(aparatos, num_top=3):
     consumos = []
     for a in aparatos:
-        consumo_mes = calcular_consumo_aparato(a.potencia, a.horas) * 30
+        potencia = a.get('potencia', 0)
+        horas = a.get('horas', 0)
+        consumo_mes = calcular_consumo_aparato(potencia, horas) * 30
         consumos.append({
-            'id': a.id, 
-            'nombre': a.nombre, 
+            'id': a.get('id'), 
+            'nombre': a.get('nombre', ''), 
             'consumo': consumo_mes,
-            'potencia': a.potencia,
-            'horas': a.horas
+            'potencia': potencia,
+            'horas': horas
         })
     return sorted(consumos, key=lambda x: x['consumo'], reverse=True)[:num_top]
 
-def obtener_datos_consumo(user_id):
-    aparatos = Aparato.query.filter_by(user_id=user_id).all()
+def obtener_datos_consumo(aparatos, tarifa):
     if not aparatos:
         return {
             'aparatos': [],
@@ -30,18 +29,19 @@ def obtener_datos_consumo(user_id):
 
     resultado_aparatos = []
     total_diario = 0
-    tarifa = Config.TARIFA_KWH
     
     for a in aparatos:
-        kwh_dia = (a.potencia * a.horas) / 1000
+        potencia = a.get('potencia', 0)
+        horas = a.get('horas', 0)
+        kwh_dia = (potencia * horas) / 1000
         kwh_mes = kwh_dia * 30
         costo_mes = kwh_mes * tarifa
         
         total_diario += kwh_dia
         resultado_aparatos.append({
-            'nombre': a.nombre,
-            'potencia_w': a.potencia,
-            'horas_dia': a.horas,
+            'nombre': a.get('nombre', ''),
+            'potencia_w': potencia,
+            'horas_dia': horas,
             'kwh_dia': kwh_dia,
             'kwh_mes': kwh_mes,
             'costo_mes': costo_mes

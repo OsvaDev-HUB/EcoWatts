@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Recuperar Contraseña - EcoWatts{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="brand-icon">
+                <i class="fas fa-unlock-alt" style="font-size: 2rem; color: white;"></i>
+            </div>
+            <h2>Recuperar Contraseña</h2>
+            <p class="section-desc">Ingresa tu correo para recibir un enlace de recuperación</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="notification-inline {{ category }}"><i class="fas fa-info-circle"></i> {{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('auth.recuperar_password') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            
+            <div class="form-group">
+                <label style="margin-bottom: 0px !important; line-height: 1.2;">Correo Electrónico</label>
+                <div class="input-group">
+                    <input type="email" name="email" class="auth-input" placeholder="tu@correo.com" required>
+                    <i class="fas fa-envelope"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-auth">
+                <span>Enviar Enlace</span>
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            ¿Recordaste tu contraseña? <a href="{{ url_for('auth.login') }}">Vuelve al login</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -7,9 +7,9 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
     
-    # Configurar cookies seguras
+    # Configurar cookies seguras (false en dev para permitir inicio de sesión)
     app.config.update(
-        SESSION_COOKIE_SECURE=True,
+        SESSION_COOKIE_SECURE=not app.config.get('DEBUG', False),
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax"
     )
@@ -45,9 +45,14 @@ def create_app(config_class=Config):
             'https://fonts.googleapis.com',
             'https://fonts.gstatic.com',
             'https://cdnjs.cloudflare.com'
+        ],
+        'img-src': [
+            '\'self\'',
+            'data:',
+            'https://upload.wikimedia.org'
         ]
     }
-    Talisman(app, content_security_policy=csp)
+    Talisman(app, content_security_policy=csp, force_https=False)
 
     # Configurar User loader para flask_login
     # Importar modelos para que SQLAlchemy los reconozca

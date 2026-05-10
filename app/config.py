@@ -14,3 +14,7 @@ class Config:
     
     # Debug por defecto es False si no está definido en el entorno
     DEBUG = os.getenv('FLASK_DEBUG', 'False').lower() in ['true', '1', 't']
+    
+    # Configuración de Google OAuth
+    GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
+    GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')

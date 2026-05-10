@@ -22,8 +22,22 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-usuario}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-Eco_Watts}
       - SECRET_KEY=${SECRET_KEY}
       - FLASK_DEBUG=${FLASK_DEBUG:-False}
+      - SMTP_SERVER=mailpit
+      - SMTP_PORT=1025
+      - SENDER_EMAIL=noreply@ecowatts.cl
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     depends_on:
       - db
+      - mailpit
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: ecowatts-mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
 
 volumes:
   postgres_data:

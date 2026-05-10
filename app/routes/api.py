@@ -1,27 +1,58 @@
-from flask import Blueprint, request, jsonify, current_app
-from flask_login import login_required, current_user
+from flask import Blueprint, request, jsonify, current_app, session
+from flask_login import current_user
 from app.extensions import db, limiter
 from app.models.aparato import Aparato
 from app.services.consumo import obtener_datos_consumo, obtener_top_consumidores_db
 from app.config import Config
 from markupsafe import escape
+import time
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
+def get_user_aparatos():
+    if current_user.is_authenticated:
+        aparatos = Aparato.query.filter_by(user_id=current_user.id).all()
+        return [{'id': a.id, 'nombre': a.nombre, 'potencia': a.potencia, 'horas': a.horas} for a in aparatos]
+    else:
+        return session.get('anon_aparatos', [])
+
+def get_tarifa():
+    if current_user.is_authenticated:
+        return float(current_user.tarifa_kwh or Config.TARIFA_KWH)
+    return float(session.get('tarifa_kwh', Config.TARIFA_KWH))
+
+@bp.route('/config/tarifa', methods=['POST'])
+@limiter.limit("20 per minute")
+def actualizar_tarifa():
+    data = request.get_json()
+    if not data:
+        return jsonify({'mensaje': 'Datos inválidos'}), 400
+    try:
+        nueva_tarifa = float(data.get('tarifa_kwh', Config.TARIFA_KWH))
+        if nueva_tarifa <= 0:
+            return jsonify({'mensaje': 'La tarifa debe ser mayor a 0'}), 400
+            
+        if current_user.is_authenticated:
+            current_user.tarifa_kwh = nueva_tarifa
+            db.session.commit()
+        else:
+            session['tarifa_kwh'] = nueva_tarifa
+            session.modified = True
+            
+        return jsonify({'mensaje': 'Tarifa actualizada correctamente', 'tarifa': nueva_tarifa})
+    except (ValueError, TypeError):
+        return jsonify({'mensaje': 'Valor numérico inválido'}), 400
+
+@bp.route('/config/tarifa', methods=['GET'])
+def obtener_tarifa_actual():
+    return jsonify({'tarifa': get_tarifa()})
+
 @bp.route('/aparatos', methods=['GET'])
-@login_required
 @limiter.limit("60 per minute")
 def obtener_aparatos():
-    aparatos = Aparato.query.filter_by(user_id=current_user.id).all()
-    return jsonify([{
-        'id': a.id,
-        'nombre': a.nombre,
-        'potencia': a.potencia,
-        'horas': a.horas
-    } for a in aparatos])
+    return jsonify(get_user_aparatos())
 
 @bp.route('/aparatos', methods=['POST'])
-@login_required
 @limiter.limit("20 per minute")
 def agregar_aparato():
     data = request.get_json()
@@ -42,46 +73,57 @@ def agregar_aparato():
     if horas <= 0 or horas > 24:
         return jsonify({'mensaje': 'Horas de uso deben ser entre 0.1 y 24'}), 400
 
-    try:
-        nuevo = Aparato(
-            nombre=nombre,
-            potencia=potencia,
-            horas=horas,
-            user_id=current_user.id
-        )
-        db.session.add(nuevo)
-        db.session.commit()
-        return jsonify({'mensaje': 'Aparato agregado correctamente'})
-    except Exception:
-        db.session.rollback()
-        return jsonify({'mensaje': 'Ocurrió un error al procesar la solicitud'}), 500
-
-@bp.route('/aparatos/<int:id>', methods=['DELETE'])
-@login_required
-@limiter.limit("20 per minute")
-def eliminar_aparato(id):
-    aparato = Aparato.query.filter_by(id=id, user_id=current_user.id).first()
-    if aparato:
+    if current_user.is_authenticated:
         try:
-            db.session.delete(aparato)
+            nuevo = Aparato(
+                nombre=nombre,
+                potencia=potencia,
+                horas=horas,
+                user_id=current_user.id
+            )
+            db.session.add(nuevo)
             db.session.commit()
-            return jsonify({'mensaje': 'Aparato eliminado'})
+            return jsonify({'mensaje': 'Aparato agregado correctamente'})
         except Exception:
             db.session.rollback()
-            return jsonify({'mensaje': 'Error al eliminar'}), 500
-    return jsonify({'mensaje': 'No encontrado'}), 404
+            return jsonify({'mensaje': 'Ocurrió un error al procesar la solicitud'}), 500
+    else:
+        aparatos = session.get('anon_aparatos', [])
+        new_id = int(time.time() * 1000) # Simple unique ID for frontend
+        aparatos.append({'id': new_id, 'nombre': nombre, 'potencia': potencia, 'horas': horas})
+        session['anon_aparatos'] = aparatos
+        session.modified = True
+        return jsonify({'mensaje': 'Aparato agregado correctamente'})
+
+@bp.route('/aparatos/<int:id>', methods=['DELETE'])
+@limiter.limit("20 per minute")
+def eliminar_aparato(id):
+    if current_user.is_authenticated:
+        aparato = Aparato.query.filter_by(id=id, user_id=current_user.id).first()
+        if aparato:
+            try:
+                db.session.delete(aparato)
+                db.session.commit()
+                return jsonify({'mensaje': 'Aparato eliminado'})
+            except Exception:
+                db.session.rollback()
+                return jsonify({'mensaje': 'Error al eliminar'}), 500
+        return jsonify({'mensaje': 'No encontrado'}), 404
+    else:
+        aparatos = session.get('anon_aparatos', [])
+        aparatos_filtered = [a for a in aparatos if a['id'] != id]
+        if len(aparatos) != len(aparatos_filtered):
+            session['anon_aparatos'] = aparatos_filtered
+            session.modified = True
+            return jsonify({'mensaje': 'Aparato eliminado'})
+        return jsonify({'mensaje': 'No encontrado'}), 404
 
 @bp.route('/aparatos/<int:id>', methods=['PUT'])
-@login_required
 @limiter.limit("20 per minute")
 def editar_aparato(id):
     data = request.get_json()
     if not data:
         return jsonify({'mensaje': 'Datos inválidos'}), 400
-        
-    aparato = Aparato.query.filter_by(id=id, user_id=current_user.id).first()
-    if not aparato:
-        return jsonify({'mensaje': 'No encontrado'}), 404
         
     nombre = escape(data.get('nombre', '').strip())
     try:
@@ -97,29 +139,47 @@ def editar_aparato(id):
     if horas <= 0 or horas > 24:
         return jsonify({'mensaje': 'Horas de uso inválidas'}), 400
 
-    try:
-        aparato.nombre = nombre
-        aparato.potencia = potencia
-        aparato.horas = horas
-        db.session.commit()
-        return jsonify({'mensaje': 'Aparato actualizado'})
-    except Exception:
-        db.session.rollback()
-        return jsonify({'mensaje': 'Error al actualizar'}), 500
+    if current_user.is_authenticated:
+        aparato = Aparato.query.filter_by(id=id, user_id=current_user.id).first()
+        if not aparato:
+            return jsonify({'mensaje': 'No encontrado'}), 404
+        try:
+            aparato.nombre = nombre
+            aparato.potencia = potencia
+            aparato.horas = horas
+            db.session.commit()
+            return jsonify({'mensaje': 'Aparato actualizado'})
+        except Exception:
+            db.session.rollback()
+            return jsonify({'mensaje': 'Error al actualizar'}), 500
+    else:
+        aparatos = session.get('anon_aparatos', [])
+        found = False
+        for a in aparatos:
+            if a['id'] == id:
+                a['nombre'] = nombre
+                a['potencia'] = potencia
+                a['horas'] = horas
+                found = True
+                break
+        if found:
+            session['anon_aparatos'] = aparatos
+            session.modified = True
+            return jsonify({'mensaje': 'Aparato actualizado'})
+        return jsonify({'mensaje': 'No encontrado'}), 404
 
 @bp.route('/consumo', methods=['GET'])
-@login_required
 @limiter.limit("60 per minute")
 def calcular_consumo():
-    datos = obtener_datos_consumo(current_user.id)
+    datos = obtener_datos_consumo(get_user_aparatos(), get_tarifa())
     return jsonify(datos)
 
 @bp.route('/top-consumidores')
-@login_required
 @limiter.limit("60 per minute")
 def top_consumidores():
-    top = obtener_top_consumidores_db(current_user.id, 3)
-    total_data = obtener_datos_consumo(current_user.id)
+    aparatos = get_user_aparatos()
+    top = obtener_top_consumidores_db(aparatos, 3)
+    total_data = obtener_datos_consumo(aparatos, get_tarifa())
     total_mensual = total_data['total_mensual_kwh']
     
     resultado = []
@@ -135,7 +195,6 @@ def top_consumidores():
     return jsonify(resultado)
 
 @bp.route('/simulacion', methods=['POST'])
-@login_required
 @limiter.limit("30 per minute")
 def simular_reduccion():
     data = request.get_json()
@@ -149,7 +208,7 @@ def simular_reduccion():
         
     reduccion = porcentaje_reduccion / 100
     
-    cons_data = obtener_datos_consumo(current_user.id)
+    cons_data = obtener_datos_consumo(get_user_aparatos(), get_tarifa())
     original = cons_data['total_mensual_kwh']
     nuevo = original * (1 - (reduccion * 0.5))
     
@@ -157,15 +216,15 @@ def simular_reduccion():
         'consumo_original': original,
         'consumo_nuevo': nuevo,
         'ahorro_kwh': original - nuevo,
-        'ahorro_dinero': (original - nuevo) * Config.TARIFA_KWH,
+        'ahorro_dinero': (original - nuevo) * get_tarifa(),
         'ahorro_porcentual': (reduccion * 0.5) * 100
     })
 
 @bp.route('/recomendaciones')
-@login_required
 @limiter.limit("30 per minute")
 def recomendaciones():
-    top = obtener_top_consumidores_db(current_user.id, 3)
+    aparatos = get_user_aparatos()
+    top = obtener_top_consumidores_db(aparatos, 3)
     sugerencias = []
     
     for item in top:
@@ -179,7 +238,7 @@ def recomendaciones():
         horas_recomendadas = max(0, horas_actuales - reduccion)
         
         kwh_dia_ahorrados = (potencia * reduccion) / 1000
-        ahorro_mes_dinero = kwh_dia_ahorrados * 30 * Config.TARIFA_KWH
+        ahorro_mes_dinero = kwh_dia_ahorrados * 30 * get_tarifa()
         
         sugerencias.append({
             'aparato': item['nombre'],
@@ -190,19 +249,23 @@ def recomendaciones():
     return jsonify(sugerencias)
 
 @bp.route('/cargar-ejemplo', methods=['POST'])
-@login_required
 @limiter.limit("5 per minute")
 def cargar_ejemplo():
-    if not current_app.config.get('DEBUG', False):
-        return jsonify({'mensaje': 'Operación no permitida en producción'}), 403
-        
     ejemplos = [
         {'nombre': 'Refrigerador', 'potencia': 250, 'horas': 24},
         {'nombre': 'Televisor', 'potencia': 150, 'horas': 5},
         {'nombre': 'Aire Acondicionado', 'potencia': 1500, 'horas': 4}
     ]
-    for ej in ejemplos:
-        nuevo = Aparato(nombre=ej['nombre'], potencia=ej['potencia'], horas=ej['horas'], user_id=current_user.id)
-        db.session.add(nuevo)
-    db.session.commit()
+    if current_user.is_authenticated:
+        for ej in ejemplos:
+            nuevo = Aparato(nombre=ej['nombre'], potencia=ej['potencia'], horas=ej['horas'], user_id=current_user.id)
+            db.session.add(nuevo)
+        db.session.commit()
+    else:
+        aparatos = session.get('anon_aparatos', [])
+        for i, ej in enumerate(ejemplos):
+            new_id = int(time.time() * 1000) + i
+            aparatos.append({'id': new_id, 'nombre': ej['nombre'], 'potencia': ej['potencia'], 'horas': ej['horas']})
+        session['anon_aparatos'] = aparatos
+        session.modified = True
     return jsonify({'mensaje': 'Ejemplos cargados'})
