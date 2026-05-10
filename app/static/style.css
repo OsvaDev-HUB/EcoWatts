@@ -172,6 +172,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative; /* Para centrado absoluto del menú */
 }
 
 .navbar-brand {
@@ -221,14 +222,16 @@ body {
     display: flex;
     list-style: none;
     gap: 2rem;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .navbar-content {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end; /* Empujar acciones a la derecha */
     align-items: center;
-    width: 100%;
-    margin-left: 2rem;
+    flex: 1;
 }
 
 .mobile-menu-btn {
@@ -895,10 +898,13 @@ body {
     }
     
     .navbar-menu {
+        position: static;
+        transform: none;
+        left: auto;
         flex-direction: column;
         width: 100%;
         gap: 1.5rem;
-        margin-bottom: 2rem;
+        margin: 0 0 2rem 0;
     }
     
     .navbar-actions {

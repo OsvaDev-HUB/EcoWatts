@@ -4,8 +4,24 @@ from app.extensions import db, login_manager, csrf, limiter
 from flask_talisman import Talisman
 
 def create_app(config_class=Config):
+    import logging
+    from logging.handlers import RotatingFileHandler
+    import os
+
     app = Flask(__name__)
     app.config.from_object(config_class)
+    
+    # Configurar logging a archivo
+    if not os.path.exists('logs'):
+        os.mkdir('logs')
+    file_handler = RotatingFileHandler('logs/ecowatts.log', maxBytes=10240, backupCount=10)
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+    ))
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+    app.logger.setLevel(logging.INFO)
+    app.logger.info('EcoWatts startup')
     
     # Configurar cookies seguras (false en dev para permitir inicio de sesión)
     app.config.update(
@@ -75,6 +91,16 @@ def create_app(config_class=Config):
     with app.app_context():
         try:
             db.create_all()
+            
+            # Migración automática de la columna tarifa_kwh
+            try:
+                from sqlalchemy import text
+                db.session.execute(text("ALTER TABLE users ADD COLUMN tarifa_kwh FLOAT DEFAULT 236.0;"))
+                db.session.commit()
+            except Exception:
+                # Si falla es porque la columna ya existe, hacemos rollback silencioso
+                db.session.rollback()
+                
         except Exception as e:
             print(f"Error al conectar con la base de datos: {e}")
 

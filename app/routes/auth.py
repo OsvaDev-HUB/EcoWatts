@@ -11,6 +11,8 @@ import requests
 import secrets
 import string
 
+
+
 def generate_random_password(length=16):
     alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
     while True:
@@ -68,23 +70,28 @@ def registro():
             flash('La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un símbolo', 'error')
             return redirect(url_for('auth.registro'))
         
-        hashed_pw = generate_password_hash(password)
-        nuevo_usuario = User(
-            username=username, 
-            email=email,
-            password_hash=hashed_pw,
-            created_at=datetime.utcnow(),
-            is_active=True
-        )
-        db.session.add(nuevo_usuario)
-        db.session.commit()
-        
-        # Enviar correo asíncrono de bienvenida
-        from app.services.email_service import enviar_correo_bienvenida
-        enviar_correo_bienvenida(email, username)
-        
-        flash('Registro exitoso. Revisa tu correo electrónico.', 'success')
-        return redirect(url_for('auth.login'))
+        try:
+            hashed_pw = generate_password_hash(password)
+            nuevo_usuario = User(
+                username=username, 
+                email=email,
+                password_hash=hashed_pw,
+                created_at=datetime.utcnow(),
+                is_active=True
+            )
+            db.session.add(nuevo_usuario)
+            db.session.commit()
+            
+            # Enviar correo asíncrono de bienvenida
+            from app.services.email_service import enviar_correo_bienvenida
+            enviar_correo_bienvenida(email, username)
+            
+            flash('Registro exitoso. Revisa tu correo electrónico.', 'success')
+            return redirect(url_for('auth.login'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error interno al registrar: {str(e)}', 'error')
+            return redirect(url_for('auth.registro'))
         
     return render_template('registro.html')
 
